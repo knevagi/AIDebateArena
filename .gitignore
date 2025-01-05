@@ -1,33 +1,38 @@
-# Gradle files
-.gradle/
-build/
-
-# Local configuration file (sdk path, etc)
-local.properties
-
-# Log/OS Files
+# Root level ignores
+.DS_Store
 *.log
+*.env
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.apk
-output.json
+# Client (Next.js) ignores
+client/.next/
+client/out/
+client/node_modules/
+client/.pnp
+client/.pnp.js
+client/.yarn/install-state.gz
+client/coverage/
+client/build/
+client/.env*.local
+client/.vercel
+client/*.tsbuildinfo
+client/next-env.d.ts
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+# Server (FastAPI) ignores
+server/__pycache__/
+server/*.py[cod]
+server/*$py.class
+server/.env
+server/.venv
+server/env/
+server/venv/
+server/ENV/
+server/.pytest_cache/
+server/.coverage
+server/.mypy_cache/
 
-# Keystore files
-*.jks
-*.keystore
-
-# Google Services (e.g. APIs or Firebase)
-google-services.json
-
-# Android Profiling
-*.hprof
+# Common ignores for both client and server
+**/logs
+**/*.log
+**/*.swp
+**/.idea/
+**/.vscode/
