@@ -21,22 +21,22 @@ const MobileSiderbar = (props: any) => {
             aria-modal="true"
             data-headlessui-state="open"
           >
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-75 opacity-100"></div>
+            <div className="fixed inset-0 bg-blue-100 bg-opacity-75 opacity-100"></div>
             <div className="fixed inset-0 z-40 flex">
               <div
-                className="relative flex w-full max-w-xs flex-1 flex-col bg-gray-900 translate-x-0"
+                className="relative flex w-full max-w-xs flex-1 flex-col bg-blue-50 translate-x-0"
                 id="headlessui-dialog-panel-:rf:"
                 data-headlessui-state="open"
               >
                 <div className="absolute top-0 right-0 -mr-12 pt-2 opacity-100">
                   <button
                     type="button"
-                    className="ml-1 flex h-10 w-10 items-center justify-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                    className="ml-1 flex h-10 w-10 items-center justify-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-200"
                     tabIndex={0}
                     onClick={toggleComponentVisibility}
                   >
                     <span className="sr-only">Close sidebar</span>
-                    <IoMdClose className="h-6 w-6 text-white" />
+                    <IoMdClose className="h-6 w-6 text-blue-600" />
                   </button>
                 </div>
                 <Sidebar />
