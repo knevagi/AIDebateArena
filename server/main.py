@@ -49,18 +49,15 @@ class RequestBody(BaseModel):
     messages: List[dict] 
     model: Optional[OpenAIModel]
 
-
+@traceable
 @app.post("/send_answer")
 async def send_answer(body: RequestBody):
     messages = body.messages
     model = body.model.id if body.model else DEFAULT_OPENAI_MODEL
-    print(messages)
     try:
-        prompt_message = Message(
-            role="system",
-            content="You are ChatGPT. Respond to the user like you normally would."
-        )
-        formatted_messages = []
+        formatted_messages = [
+            SystemMessage(content="You are ChatGPT. Respond to the user like you normally would.")
+        ]
         for msg in messages:
             if msg['role'] == 'system':
                 formatted_messages.append(SystemMessage(content=msg['content']))

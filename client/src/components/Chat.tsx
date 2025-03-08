@@ -63,7 +63,6 @@ const Chat = (props: any) => {
     try {
       var bodyparam = JSON.stringify({
         messages: [
-          { role: "system", content: "You are ChatGPT. Respond to the user like you normally would." },
           ...conversation.map(msg => ({ role: msg.role, content: msg.content })),
           { role: "user", content: message }
         ].filter(msg => msg.content !== null),
