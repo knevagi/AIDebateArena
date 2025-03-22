@@ -5,10 +5,11 @@ import Sidebar from "@/components/Sidebar";
 
 export default function Home() {
   const [isComponentVisible, setIsComponentVisible] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState("");
 
-
-  useEffect(() => {
-  }, []);
+  const handleTopicSelect = (topic: string) => {
+    setSelectedTopic(topic);
+  };
 
   const toggleComponentVisibility = () => {
     setIsComponentVisible(!isComponentVisible);
@@ -17,14 +18,20 @@ export default function Home() {
   return (
     <main className="overflow-hidden w-full h-screen relative flex">
       {isComponentVisible ? (
-        <MobileSiderbar toggleComponentVisibility={toggleComponentVisibility} />
+        <MobileSiderbar 
+          toggleComponentVisibility={toggleComponentVisibility}
+          onTopicSelect={handleTopicSelect} 
+        />
       ) : null}
       <div className="dark hidden flex-shrink-0 bg-gray-900 md:flex md:w-[260px] md:flex-col">
         <div className="flex h-full min-h-0 flex-col ">
-          <Sidebar />
+          <Sidebar onTopicSelect={handleTopicSelect} />
         </div>
       </div>
-      <Chat toggleComponentVisibility={toggleComponentVisibility} />
+      <Chat 
+        toggleComponentVisibility={toggleComponentVisibility} 
+        selectedTopic={selectedTopic}
+      />
     </main>
   );
 }
