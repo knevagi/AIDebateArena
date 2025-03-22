@@ -3,7 +3,7 @@ import { HiUser } from "react-icons/hi";
 import { TbCursorText } from "react-icons/tb";
 
 const Message = (props: any) => {
-  const { message } = props;
+  const { message, isTyping, typingMessage } = props;
   const { role, content: text } = message;
 
   const isUser = role === "user";
@@ -42,6 +42,8 @@ const Message = (props: any) => {
                 <div className="markdown prose w-full break-words text-blue-900">
                   {!isUser && text === null ? (
                     <TbCursorText className="h-6 w-6 animate-pulse text-blue-500" />
+                  ) : isTyping ? (
+                    <p>{typingMessage}<span className="animate-pulse">|</span></p>
                   ) : (
                     <p>{text}</p>
                   )}
