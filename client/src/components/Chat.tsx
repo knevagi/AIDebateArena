@@ -4,23 +4,53 @@ import { BsChevronDown, BsPlusLg } from "react-icons/bs";
 import { RxHamburgerMenu } from "react-icons/rx";
 
 import Message from "./Message";
+import Sidebar from "./Sidebar";
 
-const Chat = (props: any) => {
-  const { toggleComponentVisibility } = props;
+interface ChatProps {
+  toggleComponentVisibility: () => void;
+  selectedTopic: string;
+}
 
+const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showEmptyChat, setShowEmptyChat] = useState(true);
   const [conversation, setConversation] = useState<any[]>([]);
   const [message, setMessage] = useState("");
+  const [isTopicSelected, setIsTopicSelected] = useState(false);
+  const [debateRounds, setDebateRounds] = useState(3);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const bottomOfChatRef = useRef<HTMLDivElement>(null);
-  const DEFAULT_OPENAI_MODEL = {
-    name: "Default (GPT-3.5)",
-    id: "gpt-3.5-turbo",
-    available: true,
-  };
-  const selectedModel = DEFAULT_OPENAI_MODEL;
+  
+  // Define available models
+  const AVAILABLE_MODELS = [
+    { name: "ChatGPT", id: "gpt-3.5-turbo", available: true },
+    { name: "Gemini", id: "gemini-1.5-pro", available: true },
+    { name: "Claude", id: "claude-3-5-sonnet-20240620", available: true }
+  ];
+
+  // State for both debators
+  const [debator1Model, setDebator1Model] = useState(AVAILABLE_MODELS[0]);
+  const [debator2Model, setDebator2Model] = useState(AVAILABLE_MODELS[1]);
+  const [isDropdown1Open, setIsDropdown1Open] = useState(false);
+  const [isDropdown2Open, setIsDropdown2Open] = useState(false);
+  const [loadingClaude, setLoadingClaude] = useState(false);
+  const [loadingOpenAI, setLoadingOpenAI] = useState(false);
+  const [isConstructingDebate, setIsConstructingDebate] = useState(false);
+  const [typingMessage, setTypingMessage] = useState<string>("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Add effect to handle selected topic
+  useEffect(() => {
+    if (selectedTopic) {
+      setMessage(selectedTopic);
+      setIsTopicSelected(true);
+      if (textAreaRef.current) {
+        textAreaRef.current.style.height = "24px";
+        textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+      }
+    }
+  }, [selectedTopic]);
 
   useEffect(() => {
     if (textAreaRef.current) {
@@ -37,66 +67,70 @@ const Chat = (props: any) => {
 
   const sendMessage = async (e: any) => {
     e.preventDefault();
+    setMessage("");
 
-    // Don't send empty messages
     if (message.length < 1) {
       setErrorMessage("Please enter a message.");
       return;
-    } else {
-      setErrorMessage("");
     }
-
     
-    setIsLoading(true);
+    setErrorMessage("");
+    setIsConstructingDebate(true);
 
-    // Add the message to the conversation
-    setConversation([
-      ...conversation,
-      { content: message, role: "user" },
-      { content: null, role: "system" },
-    ]);
-
-    // Clear the message & remove empty chat
-    setMessage("");
+    const userMessage = { content: message, role: "user" };
     setShowEmptyChat(false);
 
+    const bodyparam = JSON.stringify({
+      messages: [
+        ...conversation.map(msg => ({ role: msg.role, content: msg.content })),
+        userMessage
+      ].filter(msg => msg.content !== null),
+      model1: debator1Model.name,
+      model2:debator2Model.name,
+      rounds:debateRounds.toString()
+    });
+
+    setConversation(prev => [...prev, userMessage]);
+
     try {
-      var bodyparam = JSON.stringify({
-        messages: [
-          ...conversation.map(msg => ({ role: msg.role, content: msg.content })),
-          { role: "user", content: message }
-        ].filter(msg => msg.content !== null),
-        model: selectedModel,
-      });
-      console.log(bodyparam);
-      const response = await fetch(`http://10.157.61.124:8000/send_answer`, {
+      const response = await fetch(`http://172.19.96.1:8000/send_answer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body:bodyparam ,
+        body: bodyparam,
       });
 
       if (response.ok) {
         const data = await response.json();
-
-        // Add the message to the conversation
-        setConversation([
-          ...conversation,
-          { content: message, role: "user" },
-          { content: data.message, role: "system" },
-        ]);
+        setIsConstructingDebate(false);
+        console.log(data);
+        
+        // Process responses one by one
+        for (const res of data) {
+          // Add Model1Res with typing animation
+          setTypingMessage(debator1Model.name+" is typing...");
+          setIsTyping(true);
+          await new Promise(resolve => setTimeout(resolve, 10000)); // Simulate typing delay
+          setConversation(prev => [...prev, { content: res.Model1Res, role: "system" }]);
+          setIsTyping(false);
+          
+          // Add Model2Res with typing animation
+          setTypingMessage(debator1Model.name+" is typing...");
+          setIsTyping(true);
+          await new Promise(resolve => setTimeout(resolve, 10000)); // Simulate typing delay
+          setConversation(prev => [...prev, { content: res.Model2Res, role: "system" }]);
+          setIsTyping(false);
+        }
       } else {
         console.error(response);
         setErrorMessage(response.statusText);
+        setIsConstructingDebate(false);
       }
-
-      setIsLoading(false);
     } catch (error: any) {
       console.error(error);
       setErrorMessage(error.message);
-
-      setIsLoading(false);
+      setIsConstructingDebate(false);
     }
   };
 
@@ -106,6 +140,38 @@ const Chat = (props: any) => {
       sendMessage(e);
       e.preventDefault();
     }
+  };
+
+  // Handle model selection
+  const handleDebator1Select = (model: any) => {
+    setDebator1Model(model);
+    setIsDropdown1Open(false);
+  };
+
+  const handleDebator2Select = (model: any) => {
+    setDebator2Model(model);
+    setIsDropdown2Open(false);
+  };
+
+  const handleRoundsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (value >= 1 && value <= 10) {
+      setDebateRounds(value);
+    }
+  };
+
+  // Get available models for each dropdown
+  const getAvailableModelsForDebator1 = () => {
+    return AVAILABLE_MODELS.filter(model => model.id !== debator2Model.id);
+  };
+
+  const getAvailableModelsForDebator2 = () => {
+    return AVAILABLE_MODELS.filter(model => model.id !== debator1Model.id);
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    setIsTopicSelected(false);
   };
 
   return (
@@ -131,44 +197,123 @@ const Chat = (props: any) => {
                         {!showEmptyChat && conversation.length > 0 ? (
                           <div className="flex flex-col items-center text-sm bg-gray-800">
                             <div className="flex w-full items-center justify-center gap-1 border-b border-blue-100 bg-blue-50 p-3 text-blue-700">
-                              Model: {selectedModel.name}
+                              Model: {debator1Model.name} vs {debator2Model.name}
                             </div>
                             {conversation.map((message, index) => (
-                              <Message key={index} message={message} />
+                              <Message 
+                                key={index} 
+                                message={message} 
+                                isTyping={false}
+                              />
                             ))}
+                            {isConstructingDebate && (
+                              <div className="flex items-center justify-center p-4 bg-sky-500 text-white w-full">
+                                <div className="animate-pulse">Constructing Debate...</div>
+                              </div>
+                            )}
+                            {isTyping && (
+                              <Message 
+                                message={{ role: 'system', content: '' }}
+                                isTyping={true}
+                                typingMessage={typingMessage}
+                              />
+                            )}
                             <div className="w-full h-32 md:h-48 flex-shrink-0 bg-white"></div>
                             <div ref={bottomOfChatRef}></div>
                           </div>
                         ) : null}
                         {showEmptyChat ? (
                           <div className="py-10 relative w-full flex flex-col h-full">
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="relative w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
-                                <button
-                                  className="relative flex w-full cursor-default flex-col rounded-md border border-blue-200 bg-white py-2 pl-3 pr-10 text-left focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                                  id="headlessui-listbox-button-:r0:"
-                                  type="button"
-                                  aria-haspopup="true"
-                                  aria-expanded="false"
-                                  data-headlessui-state=""
-                                  aria-labelledby="headlessui-listbox-label-:r1: headlessui-listbox-button-:r0:"
-                                >
-                                  <label
-                                    className="block text-xs text-blue-600 text-center"
-                                    id="headlessui-listbox-label-:r1:"
-                                    data-headlessui-state=""
-                                  > 
-                                    Model
-                                  </label>
-                                  <span className="inline-flex w-full truncate">
-                                    <span className="flex h-6 items-center gap-1 truncate text-blue-900">
-                                      {selectedModel.name}
+                            <div className="flex flex-col items-center gap-4">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="relative w-full md:w-3/4 lg:w-2/3 xl:w-1/2">
+                                  <button
+                                    onClick={() => setIsDropdown1Open(!isDropdown1Open)}
+                                    className="relative flex w-full cursor-pointer flex-col rounded-md border border-blue-200 bg-white py-2 pl-3 pr-10 text-left focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    id="headlessui-listbox-button-:r0:"
+                                    type="button"
+                                    aria-haspopup="true"
+                                    aria-expanded={isDropdown1Open}
+                                  >
+                                    <label className="block text-xs text-blue-600 text-center">
+                                      Model Debator 1 (For)
+                                    </label>
+                                    <span className="inline-flex w-full truncate">
+                                      <span className="flex h-6 items-center gap-1 truncate text-blue-900">
+                                        {debator1Model.name}
+                                      </span>
                                     </span>
-                                  </span>
-                                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                    <BsChevronDown className="h-4 w-4 text-gray-400" />
-                                  </span>
-                                </button>
+                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                      <BsChevronDown className="h-4 w-4 text-gray-400" />
+                                    </span>
+                                  </button>
+                                  {isDropdown1Open && (
+                                    <div className="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                                      <ul className="max-h-60 overflow-auto py-1">
+                                        {getAvailableModelsForDebator1().map((model) => (
+                                          <li
+                                            key={model.id}
+                                            onClick={() => handleDebator1Select(model)}
+                                            className="cursor-pointer px-4 py-2 hover:bg-blue-50 text-blue-900"
+                                          >
+                                            {model.name}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center justify-center px-4">
+                                  <span className="text-lg font-bold text-blue-600">VS</span>
+                                </div>
+                                <div className="relative w-full md:w-3/4 lg:w-2/3 xl:w-1/2">
+                                  <button
+                                    onClick={() => setIsDropdown2Open(!isDropdown2Open)}
+                                    className="relative flex w-full cursor-pointer flex-col rounded-md border border-blue-200 bg-white py-2 pl-3 pr-10 text-left focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    id="headlessui-listbox-button-:r2:"
+                                    type="button"
+                                    aria-haspopup="true"
+                                    aria-expanded={isDropdown2Open}
+                                  >
+                                    <label className="block text-xs text-blue-600 text-center">
+                                      Model Debator 2(Against)
+                                    </label>
+                                    <span className="inline-flex w-full truncate">
+                                      <span className="flex h-6 items-center gap-1 truncate text-blue-900">
+                                        {debator2Model.name}
+                                      </span>
+                                    </span>
+                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                      <BsChevronDown className="h-4 w-4 text-gray-400" />
+                                    </span>
+                                  </button>
+                                  {isDropdown2Open && (
+                                    <div className="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                                      <ul className="max-h-60 overflow-auto py-1">
+                                        {getAvailableModelsForDebator2().map((model) => (
+                                          <li
+                                            key={model.id}
+                                            onClick={() => handleDebator2Select(model)}
+                                            className="cursor-pointer px-4 py-2 hover:bg-blue-50 text-blue-900"
+                                          >
+                                            {model.name}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 mt-4">
+                                <label className="text-sm text-blue-600">Debate Rounds:</label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="10"
+                                  value={debateRounds}
+                                  onChange={handleRoundsChange}
+                                  className="w-24 px-3 py-2 border border-blue-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 text-blue-900"
+                                />
                               </div>
                             </div>
                           </div>
@@ -198,10 +343,10 @@ const Chat = (props: any) => {
                               maxHeight: "200px",
                               overflowY: "hidden",
                             }}
-                            // rows={1}
-                            placeholder="Send a message..."
+                            disabled={isTopicSelected}
+                            placeholder="Pick a topic"
                             className="m-0 w-full resize-none border-0 bg-transparent p-0 pr-7 focus:ring-0 focus-visible:ring-0 bg-transparent pl-2 md:pl-0 text-blue-900 placeholder-blue-400"
-                            onChange={(e) => setMessage(e.target.value)}
+                            onChange={handleMessageChange}
                             onKeyDown={handleKeypress}
                           ></textarea>
                           <button
