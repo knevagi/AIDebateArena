@@ -59,7 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onTopicSelect }) => {
         </label>
         <label className="flex py-3 px-3 items-center gap-3 rounded-md hover:bg-blue-100 transition-colors duration-200 text-blue-900 cursor-pointer text-sm">
           <AiFillCaretRight className="h-4 w-4" />
-          ChatGPT-3.5 Turbo
+          ChatGPT-4o
         </label>
         <label className="flex py-3 px-3 items-center gap-3 rounded-md hover:bg-blue-100 transition-colors duration-200 text-blue-900 cursor-pointer text-sm">
           <AiFillCaretRight className="h-4 w-4" />
