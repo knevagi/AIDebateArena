@@ -1,10 +1,10 @@
-import { SiOpenai } from "react-icons/si";
+import { SiOpenai,SiGooglegemini,SiClaude } from '@icons-pack/react-simple-icons';
 import { HiUser } from "react-icons/hi";
 import { TbCursorText } from "react-icons/tb";
 
 const Message = (props: any) => {
   const { message, isTyping, typingMessage } = props;
-  const { role, content: text } = message;
+  const { role, content: text,model } = message;
 
   const isUser = role === "user";
 
@@ -21,7 +21,12 @@ const Message = (props: any) => {
               {isUser ? (
                 <HiUser className="h-4 w-4 text-white" />
               ) : (
+                model=="ChatGPT"?
                 <SiOpenai className="h-4 w-4 text-white" />
+                :model=="Gemini"?
+                <SiGooglegemini className="h-4 w-4 text-white" />
+                :
+                <SiClaude className="h-4 w-4 text-white" />
               )}
             </div>
             <div className="text-xs flex items-center justify-center gap-1 absolute left-0 top-2 -ml-4 -translate-x-full group-hover:visible !invisible">
