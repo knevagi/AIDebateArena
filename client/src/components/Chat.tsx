@@ -38,11 +38,14 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
   const [loadingOpenAI, setLoadingOpenAI] = useState(false);
   const [isConstructingDebate, setIsConstructingDebate] = useState(false);
   const [typingMessage, setTypingMessage] = useState<string>("");
+  const [curTypingModel, setCurTypingModel] = useState("")
   const [isTyping, setIsTyping] = useState(false);
+  const [isChatOngoing, setIsChatOngoing] = useState(false)
 
   // Add effect to handle selected topic
   useEffect(() => {
     if (selectedTopic) {
+      console.log("selected Topic changed")
       setMessage(selectedTopic);
       setIsTopicSelected(true);
       if (textAreaRef.current) {
@@ -68,7 +71,8 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
   const sendMessage = async (e: any) => {
     e.preventDefault();
     setMessage("");
-
+    setConversation([]);
+    setIsChatOngoing(true);
     if (message.length < 1) {
       setErrorMessage("Please enter a message.");
       return;
@@ -110,27 +114,32 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
         for (const res of data) {
           // Add Model1Res with typing animation
           setTypingMessage(debator1Model.name+" is typing...");
+          setCurTypingModel(debator1Model.name)
           setIsTyping(true);
           await new Promise(resolve => setTimeout(resolve, 10000)); // Simulate typing delay
-          setConversation(prev => [...prev, { content: res.Model1Res, role: "system" }]);
+          setConversation(prev => [...prev, { content: res.Model1Res, role: "system",model:debator1Model.name }]);
           setIsTyping(false);
           
           // Add Model2Res with typing animation
-          setTypingMessage(debator1Model.name+" is typing...");
+          setTypingMessage(debator2Model.name+" is typing...");
+          setCurTypingModel(debator2Model.name)
           setIsTyping(true);
           await new Promise(resolve => setTimeout(resolve, 10000)); // Simulate typing delay
-          setConversation(prev => [...prev, { content: res.Model2Res, role: "system" }]);
+          setConversation(prev => [...prev, { content: res.Model2Res, role: "system",model:debator2Model.name }]);
           setIsTyping(false);
         }
+        setIsChatOngoing(false);
       } else {
         console.error(response);
         setErrorMessage(response.statusText);
         setIsConstructingDebate(false);
+        setIsChatOngoing(false);
       }
     } catch (error: any) {
       console.error(error);
       setErrorMessage(error.message);
       setIsConstructingDebate(false);
+      setIsChatOngoing(false);
     }
   };
 
@@ -170,6 +179,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
   };
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    console.log("inside handle message change")
     setMessage(e.target.value);
     setIsTopicSelected(false);
   };
@@ -183,11 +193,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                     onClick={toggleComponentVisibility}
                   >
                     <span className="sr-only">Open sidebar</span>
-                    <RxHamburgerMenu className="h-6 w-6 text-white" />
-                  </button>
-                  <h1 className="flex-1 text-center text-base font-normal">New chat</h1>
-                  <button type="button" className="px-3">
-                    <BsPlusLg className="h-6 w-6" />
+                    <RxHamburgerMenu className="h-6 w-6 text-blue" />
                   </button>
                 </div>
                 <div className="relative h-full w-full transition-width flex flex-col overflow-hidden items-stretch flex-1">
@@ -197,7 +203,22 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                         {!showEmptyChat && conversation.length > 0 ? (
                           <div className="flex flex-col items-center text-sm bg-gray-800">
                             <div className="flex w-full items-center justify-center gap-1 border-b border-blue-100 bg-blue-50 p-3 text-blue-700">
-                              Model: {debator1Model.name} vs {debator2Model.name}
+                              <div className="flex items-center gap-2">
+                                <span>Model: {debator1Model.name} vs {debator2Model.name}</span>
+                                <button
+                                  onClick={() => {
+                                    if(!isChatOngoing){
+                                      setShowEmptyChat(true)
+                                    }
+                                    
+                                  }}
+                                  className="p-1 hover:bg-blue-100 rounded-md"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
                             {conversation.map((message, index) => (
                               <Message 
@@ -213,7 +234,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                             )}
                             {isTyping && (
                               <Message 
-                                message={{ role: 'system', content: '' }}
+                                message={{ role: 'system', content: '',model:curTypingModel }}
                                 isTyping={true}
                                 typingMessage={typingMessage}
                               />
@@ -227,6 +248,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                             <div className="flex flex-col items-center gap-4">
                               <div className="flex items-center justify-center gap-2">
                                 <div className="relative w-full md:w-3/4 lg:w-2/3 xl:w-1/2">
+                                  <div className="text-sm text-blue-600 text-center mb-1">For</div>
                                   <button
                                     onClick={() => setIsDropdown1Open(!isDropdown1Open)}
                                     className="relative flex w-full cursor-pointer flex-col rounded-md border border-blue-200 bg-white py-2 pl-3 pr-10 text-left focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
@@ -236,7 +258,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                                     aria-expanded={isDropdown1Open}
                                   >
                                     <label className="block text-xs text-blue-600 text-center">
-                                      Model Debator 1 (For)
+                                      Model Debator 1
                                     </label>
                                     <span className="inline-flex w-full truncate">
                                       <span className="flex h-6 items-center gap-1 truncate text-blue-900">
@@ -267,6 +289,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                                   <span className="text-lg font-bold text-blue-600">VS</span>
                                 </div>
                                 <div className="relative w-full md:w-3/4 lg:w-2/3 xl:w-1/2">
+                                  <div className="text-sm text-blue-600 text-center mb-1">Against</div>
                                   <button
                                     onClick={() => setIsDropdown2Open(!isDropdown2Open)}
                                     className="relative flex w-full cursor-pointer flex-col rounded-md border border-blue-200 bg-white py-2 pl-3 pr-10 text-left focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
@@ -276,7 +299,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                                     aria-expanded={isDropdown2Open}
                                   >
                                     <label className="block text-xs text-blue-600 text-center">
-                                      Model Debator 2(Against)
+                                      Model Debator 2
                                     </label>
                                     <span className="inline-flex w-full truncate">
                                       <span className="flex h-6 items-center gap-1 truncate text-blue-900">
@@ -309,7 +332,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                                 <input
                                   type="number"
                                   min="1"
-                                  max="10"
+                                  max="5"
                                   value={debateRounds}
                                   onChange={handleRoundsChange}
                                   className="w-24 px-3 py-2 border border-blue-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 text-blue-900"
