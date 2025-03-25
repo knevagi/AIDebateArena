@@ -32,7 +32,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
   const [showEmptyChat, setShowEmptyChat] = useState(true);
   const [conversation, setConversation] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
-  const [isTopicSelected, setIsTopicSelected] = useState(false);
+  const [isTopicSelected, setIsTopicSelected] = useState(true);
   const [debateRounds, setDebateRounds] = useState(3);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const bottomOfChatRef = useRef<HTMLDivElement>(null);
@@ -193,7 +193,6 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     console.log("inside handle message change")
     setMessage(e.target.value);
-    setIsTopicSelected(false);
   };
 
   return (
