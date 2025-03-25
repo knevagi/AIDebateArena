@@ -110,7 +110,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
     setConversation(prev => [...prev, userMessage]);
 
     try {
-      const response = await fetch(`http://172.19.96.1:8000/send_answer`, {
+      const response = await fetch(`https://mere-berthe-tellmeastro-f7dab50d.koyeb.app/send_answer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
