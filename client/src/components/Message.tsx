@@ -2,8 +2,18 @@ import { SiOpenai,SiGooglegemini,SiClaude } from '@icons-pack/react-simple-icons
 import { HiUser } from "react-icons/hi";
 import { TbCursorText } from "react-icons/tb";
 
-const Message = (props: any) => {
-  const { message, isTyping, typingMessage } = props;
+
+interface MessageProps{
+  message:{
+    content:string;
+    role:string;
+    model?:string;
+  };
+  isTyping?:boolean;
+  typingMessage?:string
+}
+
+const Message : React.FC<MessageProps> =({message, isTyping, typingMessage})=> {
   const { role, content: text,model } = message;
 
   const isUser = role === "user";

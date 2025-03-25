@@ -1,21 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 import { FiSend } from "react-icons/fi";
-import { BsChevronDown, BsPlusLg } from "react-icons/bs";
+import { BsChevronDown } from "react-icons/bs";
 import { RxHamburgerMenu } from "react-icons/rx";
 
 import Message from "./Message";
-import Sidebar from "./Sidebar";
 
 interface ChatProps {
   toggleComponentVisibility: () => void;
   selectedTopic: string;
 }
 
+interface Message {
+  content: string;
+  role: "user" | "system";
+  model?: string;
+}
+
+interface Model {
+  name: string;
+  id: string;
+  available: boolean;
+}
+
+interface DebateResponse {
+  Model1Res: string;
+  Model2Res: string;
+}
+
 const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showEmptyChat, setShowEmptyChat] = useState(true);
-  const [conversation, setConversation] = useState<any[]>([]);
+  const [conversation, setConversation] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
   const [isTopicSelected, setIsTopicSelected] = useState(false);
   const [debateRounds, setDebateRounds] = useState(3);
@@ -23,22 +38,20 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
   const bottomOfChatRef = useRef<HTMLDivElement>(null);
   
   // Define available models
-  const AVAILABLE_MODELS = [
+  const AVAILABLE_MODELS: Model[] = [
     { name: "ChatGPT", id: "gpt-3.5-turbo", available: true },
     { name: "Gemini", id: "gemini-1.5-pro", available: true },
     { name: "Claude", id: "claude-3-5-sonnet-20240620", available: true }
   ];
 
   // State for both debators
-  const [debator1Model, setDebator1Model] = useState(AVAILABLE_MODELS[0]);
-  const [debator2Model, setDebator2Model] = useState(AVAILABLE_MODELS[1]);
+  const [debator1Model, setDebator1Model] = useState<Model>(AVAILABLE_MODELS[0]);
+  const [debator2Model, setDebator2Model] = useState<Model>(AVAILABLE_MODELS[1]);
   const [isDropdown1Open, setIsDropdown1Open] = useState(false);
   const [isDropdown2Open, setIsDropdown2Open] = useState(false);
-  const [loadingClaude, setLoadingClaude] = useState(false);
-  const [loadingOpenAI, setLoadingOpenAI] = useState(false);
   const [isConstructingDebate, setIsConstructingDebate] = useState(false);
   const [typingMessage, setTypingMessage] = useState<string>("");
-  const [curTypingModel, setCurTypingModel] = useState("")
+  const [curTypingModel, setCurTypingModel] = useState<string>("");
   const [isTyping, setIsTyping] = useState(false);
   const [isChatOngoing, setIsChatOngoing] = useState(false)
 
@@ -68,7 +81,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
     }
   }, [conversation]);
 
-  const sendMessage = async (e: any) => {
+  const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
     setConversation([]);
@@ -81,7 +94,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
     setErrorMessage("");
     setIsConstructingDebate(true);
 
-    const userMessage = { content: message, role: "user" };
+    const userMessage: Message = { content: message, role: "user" };
     setShowEmptyChat(false);
 
     const bodyparam = JSON.stringify({
@@ -106,18 +119,18 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data: DebateResponse[] = await response.json();
         setIsConstructingDebate(false);
         console.log(data);
         
         // Process responses one by one
         for (const res of data) {
           // Add Model1Res with typing animation
-          setTypingMessage(debator1Model.name+" is typing...");
-          setCurTypingModel(debator1Model.name)
+          setTypingMessage(debator1Model.name + " is typing...");
+          setCurTypingModel(debator1Model.name);
           setIsTyping(true);
           await new Promise(resolve => setTimeout(resolve, 10000)); // Simulate typing delay
-          setConversation(prev => [...prev, { content: res.Model1Res, role: "system",model:debator1Model.name }]);
+          setConversation(prev => [...prev, { content: res.Model1Res, role: "system", model: debator1Model.name }]);
           setIsTyping(false);
           
           // Add Model2Res with typing animation
@@ -135,29 +148,28 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
         setIsConstructingDebate(false);
         setIsChatOngoing(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      setErrorMessage(error.message);
+      setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
       setIsConstructingDebate(false);
       setIsChatOngoing(false);
     }
   };
 
-  const handleKeypress = (e: any) => {
-    // It's triggers by pressing the enter key
-    if (e.keyCode == 13 && !e.shiftKey) {
+  const handleKeypress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.keyCode === 13 && !e.shiftKey) {
       sendMessage(e);
       e.preventDefault();
     }
   };
 
   // Handle model selection
-  const handleDebator1Select = (model: any) => {
+  const handleDebator1Select = (model: Model) => {
     setDebator1Model(model);
     setIsDropdown1Open(false);
   };
 
-  const handleDebator2Select = (model: any) => {
+  const handleDebator2Select = (model: Model) => {
     setDebator2Model(model);
     setIsDropdown2Open(false);
   };
@@ -373,7 +385,7 @@ const Chat: React.FC<ChatProps> = ({ toggleComponentVisibility, selectedTopic })
                             onKeyDown={handleKeypress}
                           ></textarea>
                           <button
-                            disabled={isLoading || message?.length === 0}
+                            disabled={message?.length === 0}
                             onClick={sendMessage}
                             className="absolute p-1 rounded-md bottom-1.5 md:bottom-2.5 bg-transparent disabled:bg-blue-200 right-1 md:right-2 disabled:opacity-40"
                           >

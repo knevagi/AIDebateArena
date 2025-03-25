@@ -2,9 +2,12 @@ import React from "react";
 import { IoMdClose } from "react-icons/io";
 import Sidebar from "./Sidebar";
 
-const MobileSiderbar = (props: any) => {
-  const { toggleComponentVisibility } = props;
 
+interface MobileSidebarProps{
+  toggleComponentVisibility:()=>void
+}
+
+const MobileSiderbar :React.FC<MobileSidebarProps>=({toggleComponentVisibility}) => {
   return (
     <div id="headlessui-portal-root display:hidden">
       <div data-headlessui-portal="">

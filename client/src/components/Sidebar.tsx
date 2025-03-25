@@ -1,14 +1,9 @@
 import React, { useState } from "react";
 import {
-  AiOutlineMessage,
   AiOutlinePlus,
-  AiOutlineUser,
-  AiOutlineSetting,
   AiFillCaretRight
 } from "react-icons/ai";
-import { BiLinkExternal } from "react-icons/bi";
 import { FiMessageSquare } from "react-icons/fi";
-import { MdLogout } from "react-icons/md";
 
 interface SidebarProps {
   onTopicSelect?: (topic: string) => void;

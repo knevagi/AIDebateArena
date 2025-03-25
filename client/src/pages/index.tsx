@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useState } from "react";
 import Chat from "@/components/Chat";
 import MobileSiderbar from "@/components/MobileSidebar";
 import Sidebar from "@/components/Sidebar";
@@ -20,7 +20,6 @@ export default function Home() {
       {isComponentVisible ? (
         <MobileSiderbar 
           toggleComponentVisibility={toggleComponentVisibility}
-          onTopicSelect={handleTopicSelect} 
         />
       ) : null}
       <div className="dark hidden flex-shrink-0 bg-gray-900 md:flex md:w-[260px] md:flex-col">
