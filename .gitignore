@@ -24,6 +24,7 @@ server/*$py.class
 server/.env
 server/.venv
 server/env/
+server/new_venv/
 server/venv/
 server/ENV/
 server/.pytest_cache/
