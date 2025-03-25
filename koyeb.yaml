@@ -5,6 +5,6 @@ services:
       # Point to your server directory
       context: ./server
     run:
-      cmd: uvicorn main:app --host 0.0.0.0 --port 8080
+      cmd: python main.py
     routes:
       - path: /
