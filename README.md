@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 AI Debate Arena
 
-## Getting Started
+An experimental web app that lets users pick a debate topic and watch **AI models like OpenAI, Claude, and Gemini** argue their sides in a structured debate format.
 
-First, run the development server:
+Built with **Next.js** on the frontend and **FastAPI** on the backend. This project explores multi-agent LLM interactions, prompt engineering, and conversational UX.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🧪 Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Choose a debate topic or enter your own
+- Turn-based debating between multiple LLMs
+- Each model is given a unique persona and tone
+- Real-time response generation using model APIs
+- Compare how different LLMs approach the same argument
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🛠 Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Frontend:** Next.js (React, TypeScript)
+- **Backend:** FastAPI (Python)
+- **LLMs Used:**  
+  - OpenAI
+  - Anthropic (Claude)  
+  - Google Gemini  
+---
