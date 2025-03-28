@@ -11,14 +11,14 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onTopicSelect }) => {
   const [topics] = useState([
+    "Pineapple works on pizza.",
+    "Work from home is the future of work.",
     "Is artificial intelligence a threat to society?",
     "Should social media platforms be regulated to prevent misinformation?",
     "Should electric cars be prioritized over gasoline vehicles?",
     "Should all people have the right to own guns?",
     "Animal testing should be banned.",
     "Standardized testing should be abolished.",
-    "Sexual education should be mandatory in schools.",
-    "Sexual orientation is determined at birth.",
     "Are we living in a simulation, and what is the nature of reality?",
     "If God is all-powerful and all-good, why does evil exist?"
   ]);
